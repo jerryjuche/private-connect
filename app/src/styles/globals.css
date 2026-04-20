@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { @apply antialiased; color-scheme: dark; }
+  body { @apply bg-void text-text font-sans; }
+  ::selection { background: rgba(110,231,183,0.2); color: #f9fafb; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1E2A3A; border-radius: 3px; }
+}
+
+@layer components {
+  .page { @apply max-w-5xl mx-auto px-5 py-12; }
+  .card { @apply rounded-2xl border border-border bg-panel p-6; }
+  .label { @apply text-xs font-mono text-dim uppercase tracking-widest; }
+  .input {
+    @apply w-full bg-surface border border-border rounded-xl px-4 py-3
+           text-sm text-text placeholder:text-muted outline-none
+           focus:border-arc/50 focus:ring-1 focus:ring-arc/20 transition-colors duration-150;
+  }
+  .btn-primary {
+    @apply px-6 py-3 rounded-xl font-semibold text-sm bg-arc text-void
+           hover:bg-arc/90 active:scale-[0.99] transition-all duration-150
+           shadow-lg shadow-arc/20 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply px-6 py-3 rounded-xl font-semibold text-sm border border-border
+           text-dim hover:text-text hover:border-muted transition-all duration-150;
+  }
+}
+
+.stagger > * { opacity: 0; }
+.stagger > *:nth-child(1) { animation: fadeUp 0.45s 0.05s cubic-bezier(0.16,1,0.3,1) forwards; }
+.stagger > *:nth-child(2) { animation: fadeUp 0.45s 0.12s cubic-bezier(0.16,1,0.3,1) forwards; }
+.stagger > *:nth-child(3) { animation: fadeUp 0.45s 0.19s cubic-bezier(0.16,1,0.3,1) forwards; }
+.stagger > *:nth-child(4) { animation: fadeUp 0.45s 0.26s cubic-bezier(0.16,1,0.3,1) forwards; }
+.stagger > *:nth-child(5) { animation: fadeUp 0.45s 0.33s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

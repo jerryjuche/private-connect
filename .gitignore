@@ -1,0 +1,10 @@
+app/node_modules/
+app/.next/
+app/.env.local
+target/
+dist/
+coverage/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
