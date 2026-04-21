@@ -1,58 +1,138 @@
 import clsx from "clsx";
 import { DiscoveryPhase, PHASE_META } from "@/lib/constants";
 
-const ORDER: DiscoveryPhase[] = ["normalizing","encrypting","submitting","processing","complete"];
+const ORDER: DiscoveryPhase[] = [
+  "normalizing",
+  "encrypting",
+  "submitting",
+  "processing",
+  "complete",
+];
 
-export default function DiscoveryProgress({ phase, error }: { phase: DiscoveryPhase; error?: string | null }) {
+export default function DiscoveryProgress({
+  phase,
+  error,
+}: {
+  phase: DiscoveryPhase;
+  error?: string | null;
+}) {
   if (phase === "idle") return null;
 
-  if (phase === "failed") return (
-    <div className="rounded-xl border border-danger/30 bg-danger/5 p-5 space-y-2 animate-fade-up">
-      <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-danger" />
-        <span className="font-mono text-sm text-danger font-semibold">Discovery failed</span>
-      </div>
-      <p className="text-sm text-dim">{error ?? "An unexpected error occurred. No data was exposed."}</p>
-      <p className="text-xs font-mono text-muted pt-1">Privacy guarantee preserved — nothing was transmitted.</p>
-    </div>
-  );
+  if (phase === "failed") {
+    return (
+      <div className="card-highlight p-5">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-danger" />
+            <p className="text-sm font-semibold text-bright">
+              Discovery request failed
+            </p>
+          </div>
 
-  const cur = ORDER.indexOf(phase);
+          <p className="text-sm leading-7 text-dim">
+            {error ?? "An unexpected error occurred. No contact data was exposed."}
+          </p>
+
+          <div className="rounded-xl border border-border bg-surface/70 px-4 py-3">
+            <p className="text-xs font-mono uppercase tracking-[0.16em] text-dim">
+              Privacy status
+            </p>
+            <p className="mt-2 text-sm text-text">
+              The request did not produce a result and no plaintext contact data
+              was persisted.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const currentIndex = ORDER.indexOf(phase);
 
   return (
-    <div className="space-y-4 animate-fade-up">
-      <div className="rounded-xl border border-arc/25 bg-arc/5 p-4 space-y-1">
-        <div className="flex items-center gap-2">
-          {phase === "complete"
-            ? <span className="w-2 h-2 rounded-full bg-arc" />
-            : <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-arc opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-arc" /></span>
-          }
-          <span className="font-mono text-sm text-arc font-semibold">{PHASE_META[phase].label}</span>
+    <div className="space-y-5">
+      <div className="card-highlight p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <p className="label">Execution status</p>
+            <p className="text-lg font-semibold text-bright">
+              {PHASE_META[phase].label}
+            </p>
+            <p className="max-w-xl text-sm leading-7 text-dim">
+              {PHASE_META[phase].detail}
+            </p>
+          </div>
+
+          <span
+            className={clsx(
+              "badge shrink-0",
+              phase === "complete" ? "badge-green" : "badge-cyan"
+            )}
+          >
+            {phase === "complete" ? "finalized" : "in progress"}
+          </span>
         </div>
-        <p className="text-xs text-dim pl-4">{PHASE_META[phase].detail}</p>
       </div>
 
-      <div className="space-y-1.5">
-        {ORDER.map((p, i) => {
-          const done   = i < cur || phase === "complete";
-          const active = p === phase && phase !== "complete";
-          return (
-            <div key={p} className={clsx("flex items-center gap-3 px-3 py-2 rounded-lg transition-colors", active && "bg-panel")}>
-              <div className="w-4 h-4 flex items-center justify-center shrink-0">
-                {done
-                  ? <svg className="w-4 h-4 text-arc" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  : active
-                  ? <span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-arc opacity-60"/><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-arc"/></span>
-                  : <span className="w-1.5 h-1.5 rounded-full bg-muted" />
-                }
+      <div className="card-plain p-5">
+        <div className="space-y-4">
+          {ORDER.map((step, index) => {
+            const done = index < currentIndex || phase === "complete";
+            const active = step === phase && phase !== "complete";
+
+            return (
+              <div key={step} className="flex gap-4">
+                <div className="relative flex flex-col items-center">
+                  <span
+                    className={clsx(
+                      "relative z-10 flex h-8 w-8 items-center justify-center rounded-full border text-xs font-mono",
+                      done
+                        ? "border-arc/30 bg-arc/10 text-arc"
+                        : active
+                        ? "border-signal/30 bg-signal/10 text-signal"
+                        : "border-border bg-surface text-dim"
+                    )}
+                  >
+                    {done ? "✓" : `0${index + 1}`}
+                  </span>
+
+                  {index < ORDER.length - 1 && (
+                    <span
+                      className={clsx(
+                        "mt-2 h-10 w-px",
+                        done ? "bg-arc/30" : "bg-border"
+                      )}
+                    />
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1 pb-2">
+                  <div className="flex items-center gap-2">
+                    <p
+                      className={clsx(
+                        "text-sm font-medium",
+                        done
+                          ? "text-bright"
+                          : active
+                          ? "text-bright"
+                          : "text-dim"
+                      )}
+                    >
+                      {PHASE_META[step].label}
+                    </p>
+
+                    {done && <span className="badge-green">done</span>}
+                    {active && <span className="badge-cyan">active</span>}
+                  </div>
+
+                  <p className="mt-1 text-sm leading-7 text-dim">
+                    {PHASE_META[step].detail}
+                  </p>
+                </div>
               </div>
-              <span className={clsx("text-xs transition-colors",
-                done ? "text-arc" : active ? "text-bright font-medium" : "text-muted"
-              )}>{PHASE_META[p].label}</span>
-              {done && <span className="ml-auto text-xs font-mono text-arc/50">done</span>}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
