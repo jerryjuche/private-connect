@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import ContactImporter from "@/components/ContactImporter";
@@ -5,110 +6,216 @@ import DiscoveryProgress from "@/components/DiscoveryProgress";
 import PrivacyExplainer from "@/components/PrivacyExplainer";
 import { useDiscovery } from "@/hooks/useDiscovery";
 import { loadProfile } from "./onboard";
-import { ROUTES, MAX_CONTACTS } from "@/lib/constants";
+import { ROUTES, MAX_CONTACTS, UserProfile } from "@/lib/constants";
 
 export default function DiscoverPage() {
   const { state, discover, reset } = useDiscovery();
-  const profile = typeof window !== "undefined" ? loadProfile() : null;
-  const isIdle   = state.phase === "idle";
-  const isActive = !isIdle && state.phase !== "complete" && state.phase !== "failed";
+
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setProfile(loadProfile());
+    setHydrated(true);
+  }, []);
+
+  const isIdle = state.phase === "idle";
+  const isActive =
+    state.phase !== "idle" &&
+    state.phase !== "complete" &&
+    state.phase !== "failed";
 
   return (
     <div className="page">
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-10">
-        {/* Main */}
-        <div className="space-y-7">
-          <div className="stagger space-y-2">
-            <p className="label">Contact discovery</p>
-            <h1 className="text-3xl font-extrabold text-bright">Find who&apos;s already here.</h1>
-            <p className="text-dim text-sm leading-relaxed max-w-lg">
-              Import up to {MAX_CONTACTS} contacts. We find who&apos;s registered without ever seeing your full list.
-              Non-matching contacts remain invisible to us — by design.
-            </p>
-          </div>
+      <div className="mb-10 max-w-3xl stagger">
+        <div className="space-y-3">
+          <span className="eyebrow">
+            <span className="h-1.5 w-1.5 rounded-full bg-signal animate-pulse-slow" />
+            Discovery flow
+          </span>
 
-          {/* Profile strip */}
-          {profile ? (
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-surface animate-fade-up">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-void font-bold text-xs shrink-0"
-                   style={{ backgroundColor: profile.avatar ?? "#6EE7B7" }}>
-                {profile.username.slice(0,2).toUpperCase()}
+          <h1 className="section-title">
+            Run a private match against the platform registry.
+          </h1>
+
+          <p className="section-body">
+            Import up to {MAX_CONTACTS} contacts and compute verified overlaps
+            without exposing the rest of your list. Only matched profiles are
+            revealed back to you.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-6">
+          {/* Hydration-safe profile strip */}
+          {!hydrated ? (
+            <div className="card-plain p-4">
+              <div className="flex items-center gap-4">
+                <div className="h-11 w-11 rounded-2xl bg-panel border border-border animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-36 rounded bg-panel animate-pulse" />
+                  <div className="h-3 w-56 rounded bg-panel animate-pulse" />
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-text text-sm font-medium">@{profile.username}</span>
-                <span className={clsx("ml-2 text-xs font-mono", profile.isDiscoverable ? "text-arc" : "text-muted")}>
-                  · {profile.isDiscoverable ? "discoverable" : "hidden"}
-                </span>
+            </div>
+          ) : profile ? (
+            <div className="card-plain p-4">
+              <div className="flex items-center gap-4">
+                <div
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-sm font-bold text-void shadow-lg"
+                  style={{ backgroundColor: profile.avatar ?? "#6EE7B7" }}
+                >
+                  {profile.username.slice(0, 2).toUpperCase()}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold text-bright">
+                      @{profile.username}
+                    </p>
+                    <span
+                      className={clsx(
+                        "badge",
+                        profile.isDiscoverable ? "badge-green" : "badge-subtle"
+                      )}
+                    >
+                      {profile.isDiscoverable
+                        ? "discoverable"
+                        : "hidden from registry"}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-dim">
+                    The current discovery request runs against the active
+                    encrypted registry state.
+                  </p>
+                </div>
+
+                <Link href={ROUTES.PROFILE} className="btn-ghost shrink-0">
+                  Edit profile
+                </Link>
               </div>
-              <Link href={ROUTES.PROFILE} className="text-xs text-dim hover:text-text transition-colors">Edit →</Link>
             </div>
           ) : (
-            <div className="flex items-center gap-3 p-4 rounded-xl border border-warn/20 bg-warn/5 animate-fade-up">
-              <span className="text-warn">⚠</span>
-              <p className="text-dim text-sm flex-1">
-                No profile yet.{" "}
-                <Link href={ROUTES.ONBOARD} className="text-arc hover:underline">Create one</Link>{" "}
-                to make yourself discoverable too.
-              </p>
+            <div className="card-highlight p-4">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 text-warn">⚠</span>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-bright">
+                    No profile found
+                  </p>
+                  <p className="text-sm text-dim">
+                    You can still try the discovery flow, but creating a profile
+                    lets others discover you through the same private matching
+                    model.
+                  </p>
+                  <Link href={ROUTES.ONBOARD} className="btn-ghost px-0">
+                    Create profile →
+                  </Link>
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Interaction card */}
-          <div className="card space-y-6 animate-fade-up">
-            {isIdle && <ContactImporter onSubmit={discover} disabled={false} />}
-
-            {isActive && (
-              <div className="space-y-6">
-                <ContactImporter onSubmit={discover} disabled={true} />
-                <div className="border-t border-border pt-6">
-                  <DiscoveryProgress phase={state.phase} error={state.error} />
-                </div>
+          <section className="card p-6 sm:p-7">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div className="space-y-1">
+                <p className="section-label">Private discovery request</p>
+                <h2 className="text-2xl font-semibold tracking-tight text-bright">
+                  Confidential contact import
+                </h2>
               </div>
+
+              <div className="flex flex-wrap gap-2">
+                <span className="badge-subtle">
+                  max {MAX_CONTACTS} contacts
+                </span>
+                <span className="badge-cyan">local normalization</span>
+              </div>
+            </div>
+
+            <ContactImporter onSubmit={discover} disabled={isActive} />
+
+            {(isActive || state.phase === "failed" || state.phase === "complete") && (
+              <div className="divider" />
             )}
 
-            {state.phase === "failed" && (
-              <div className="space-y-5">
+            {(isActive || state.phase === "failed" || state.phase === "complete") && (
+              <div className="space-y-4">
                 <DiscoveryProgress phase={state.phase} error={state.error} />
-                <button onClick={reset} className="btn-ghost w-full text-sm">Try again</button>
+
+                {state.phase === "failed" && (
+                  <div className="pt-1">
+                    <button onClick={reset} className="btn-secondary w-full sm:w-auto">
+                      Reset request
+                    </button>
+                  </div>
+                )}
+
+                {state.phase === "complete" && (
+                  <p className="text-xs font-mono uppercase tracking-[0.16em] text-dim">
+                    Redirecting to matched results…
+                  </p>
+                )}
               </div>
             )}
+          </section>
 
-            {state.phase === "complete" && (
-              <div className="space-y-3">
-                <DiscoveryProgress phase={state.phase} />
-                <p className="text-xs text-center text-dim font-mono animate-fade-up">Navigating to results…</p>
-              </div>
-            )}
-          </div>
-
-          {/* Batch summary */}
           {state.validCount > 0 && isActive && (
-            <div className="card text-xs font-mono space-y-2 animate-fade-up">
-              <p className="label">Batch</p>
-              <p className="text-arc">{state.validCount} contact{state.validCount !== 1 ? "s" : ""} queued for private matching</p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="stat">
+                <p className="stat-value">{state.validCount}</p>
+                <p className="stat-label">validated inputs</p>
+              </div>
+              <div className="stat">
+                <p className="stat-value text-signal">MPC</p>
+                <p className="stat-label">execution model</p>
+              </div>
+              <div className="stat">
+                <p className="stat-value text-arc">0</p>
+                <p className="stat-label">plaintext uploads</p>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Sidebar */}
         <aside className="space-y-5">
-          <PrivacyExplainer compact />
-          <div className="card space-y-4">
-            <p className="label">Quick guide</p>
-            <ol className="space-y-3">
-              {["Paste emails or upload a CSV (up to 10).","Contacts normalized and hashed locally.","Encrypted payload matched against registry.","Only matched profiles shown — nothing else."].map((s,i) => (
-                <li key={i} className="flex gap-3 text-xs text-dim leading-relaxed">
-                  <span className="font-mono text-arc shrink-0">0{i+1}</span>{s}
-                </li>
+          <div className="card p-5">
+            <p className="section-label">What happens here</p>
+            <div className="space-y-4">
+              {[
+                "Contacts are normalized client-side before any network step.",
+                "Hashed identifiers move through the confidential matching flow.",
+                "Only verified overlaps are returned to your session.",
+                "Non-matching contacts are never shown to the platform.",
+              ].map((item, i) => (
+                <div key={item} className="flex gap-3">
+                  <span className="mt-0.5 text-xs font-mono text-arc">
+                    0{i + 1}
+                  </span>
+                  <p className="text-sm leading-7 text-dim">{item}</p>
+                </div>
               ))}
-            </ol>
+            </div>
           </div>
-          <div className="p-4 rounded-xl border border-border bg-surface/50 space-y-2">
-            <p className="label">Demo contacts</p>
-            {["bob@example.com","carol@example.com","dave@example.com"].map(e => (
-              <p key={e} className="text-xs font-mono text-arc">{e}</p>
-            ))}
+
+          <div className="card-plain p-5">
+            <p className="section-label">Demo registry</p>
+            <div className="space-y-2">
+              {["bob@example.com", "carol@example.com", "dave@example.com"].map(
+                (email) => (
+                  <div
+                    key={email}
+                    className="rounded-xl border border-border bg-surface px-3 py-2.5 text-xs font-mono text-arc"
+                  >
+                    {email}
+                  </div>
+                )
+              )}
+            </div>
           </div>
+
+          <PrivacyExplainer compact />
         </aside>
       </div>
     </div>
