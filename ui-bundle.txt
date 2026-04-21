@@ -1,0 +1,1378 @@
+
+==================================================
+PROJECT ROOT
+==================================================
+
+/home/gamp/Desktop/private-connect
+
+==================================================
+FILE TREE
+==================================================
+
+app/src/components/ContactImporter.tsx
+app/src/components/DiscoveryProgress.tsx
+app/src/components/MatchCard.tsx
+app/src/components/PrivacyExplainer.tsx
+app/src/components/WalletButton.tsx
+app/src/hooks/useDiscovery.ts
+app/src/lib/constants.ts
+app/src/lib/mockDiscovery.ts
+app/src/lib/normalize.ts
+app/src/pages/_app.tsx
+app/src/pages/discover.tsx
+app/src/pages/index.tsx
+app/src/pages/onboard.tsx
+app/src/pages/profile.tsx
+app/src/pages/results.tsx
+app/src/styles/globals.css
+
+==================================================
+APP CONFIG
+==================================================
+
+----- FILE: app/package.json -----
+{
+  "name": "private-connect",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "papaparse": "^5.4.1",
+    "zod": "^3.23.8",
+    "clsx": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/papaparse": "^5.3.14",
+    "typescript": "^5.5.3",
+    "tailwindcss": "^3.4.4",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38"
+  }
+}
+
+
+----- FILE: app/tsconfig.json -----
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+
+
+----- FILE: app/next.config.mjs -----
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+};
+
+export default nextConfig;
+
+
+----- FILE: app/postcss.config.js -----
+module.exports = { plugins: { tailwindcss: {}, autoprefixer: {} } };
+
+
+----- FILE: app/tailwind.config.ts -----
+import type { Config } from "tailwindcss";
+const config: Config = {
+  content: ["./src/pages/**/*.{ts,tsx}", "./src/components/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ["'Syne'", "sans-serif"],
+        mono: ["'JetBrains Mono'", "monospace"],
+      },
+      colors: {
+        void:    "#080A0F",
+        surface: "#0D1117",
+        panel:   "#111827",
+        border:  "#1E2A3A",
+        muted:   "#374151",
+        dim:     "#6B7280",
+        text:    "#E5E7EB",
+        bright:  "#F9FAFB",
+        arc:     "#6EE7B7",
+        signal:  "#38BDF8",
+        warn:    "#F59E0B",
+        danger:  "#EF4444",
+      },
+      keyframes: {
+        fadeUp: {
+          "0%":   { opacity: "0", transform: "translateY(14px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        "fade-up":    "fadeUp 0.45s cubic-bezier(0.16,1,0.3,1) forwards",
+        "pulse-slow": "pulse 3s ease-in-out infinite",
+      },
+    },
+  },
+  plugins: [],
+};
+export default config;
+
+
+----- FILE: app/next-env.d.ts -----
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/basic-features/typescript for more information.
+
+
+
+==================================================
+GLOBAL STYLES
+==================================================
+
+----- FILE: app/src/styles/globals.css -----
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { @apply antialiased; color-scheme: dark; }
+  body { @apply bg-void text-text font-sans; }
+  ::selection { background: rgba(110,231,183,0.2); color: #f9fafb; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1E2A3A; border-radius: 3px; }
+}
+
+@layer components {
+  .page { @apply max-w-5xl mx-auto px-5 py-12; }
+  .card { @apply rounded-2xl border border-border bg-panel p-6; }
+  .label { @apply text-xs font-mono text-dim uppercase tracking-widest; }
+  .input {
+    @apply w-full bg-surface border border-border rounded-xl px-4 py-3
+           text-sm text-text placeholder:text-muted outline-none
+           focus:border-arc/50 focus:ring-1 focus:ring-arc/20 transition-colors duration-150;
+  }
+  .btn-primary {
+    @apply px-6 py-3 rounded-xl font-semibold text-sm bg-arc text-void
+           hover:bg-arc/90 active:scale-[0.99] transition-all duration-150
+           shadow-lg shadow-arc/20 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply px-6 py-3 rounded-xl font-semibold text-sm border border-border
+           text-dim hover:text-text hover:border-muted transition-all duration-150;
+  }
+}
+
+.stagger > * { opacity: 0; }
+.stagger > *:nth-child(1) { animation: fadeUp 0.45s 0.05s cubic-bezier(0.16,1,0.3,1) forwards; }
+.stagger > *:nth-child(2) { animation: fadeUp 0.45s 0.12s cubic-bezier(0.16,1,0.3,1) forwards; }
+.stagger > *:nth-child(3) { animation: fadeUp 0.45s 0.19s cubic-bezier(0.16,1,0.3,1) forwards; }
+.stagger > *:nth-child(4) { animation: fadeUp 0.45s 0.26s cubic-bezier(0.16,1,0.3,1) forwards; }
+.stagger > *:nth-child(5) { animation: fadeUp 0.45s 0.33s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
+
+==================================================
+PAGES
+==================================================
+
+----- FILE: app/src/pages/_app.tsx -----
+import type { AppProps } from "next/app";
+import Head from "next/head";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import clsx from "clsx";
+import WalletButton from "@/components/WalletButton";
+import { APP_NAME, ROUTES } from "@/lib/constants";
+import "@/styles/globals.css";
+
+const NAV = [
+  { href: ROUTES.DISCOVER, label: "Discover" },
+  { href: ROUTES.PROFILE,  label: "Profile"  },
+];
+
+function Layout({ children }: { children: React.ReactNode }) {
+  const { pathname } = useRouter();
+  return (
+    <div className="min-h-screen bg-void text-text flex flex-col">
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-void/80 backdrop-blur-md">
+        <div className="max-w-5xl mx-auto px-5 py-3 flex items-center justify-between gap-4">
+          <Link href={ROUTES.HOME} className="flex items-center gap-2.5 group">
+            <span className="w-6 h-6 rounded bg-arc/15 border border-arc/30 flex items-center justify-center text-arc text-xs font-bold group-hover:bg-arc/25 transition-colors">⬡</span>
+            <span className="font-bold text-sm tracking-wide text-bright">{APP_NAME}</span>
+          </Link>
+          <nav className="flex items-center gap-1">
+            {NAV.map(({ href, label }) => (
+              <Link key={href} href={href}
+                className={clsx("px-3 py-1.5 rounded-lg text-xs font-mono transition-colors duration-150",
+                  pathname === href ? "bg-panel text-bright border border-border" : "text-dim hover:text-text")}>
+                {label}
+              </Link>
+            ))}
+            <div className="ml-2"><WalletButton /></div>
+          </nav>
+        </div>
+      </header>
+
+      <main className="flex-1">{children}</main>
+
+      <footer className="border-t border-border/40 py-6 mt-16">
+        <div className="max-w-5xl mx-auto px-5 flex flex-wrap items-center justify-between gap-4">
+          <p className="text-xs font-mono text-muted">{APP_NAME} · Privacy-preserving contact discovery</p>
+          <p className="text-xs font-mono text-muted">
+            Powered by <span className="text-arc">Arcium MPC</span> · <span className="text-signal">Solana</span>
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+export default function App({ Component, pageProps }: AppProps) {
+  return (
+    <>
+      <Head>
+        <title>{APP_NAME} — Find your people. Expose nothing.</title>
+        <meta name="description" content="Privacy-preserving contact discovery powered by Arcium confidential compute on Solana." />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+      </Head>
+      <Layout><Component {...pageProps} /></Layout>
+    </>
+  );
+}
+
+
+----- FILE: app/src/pages/index.tsx -----
+import Link from "next/link";
+import PrivacyExplainer from "@/components/PrivacyExplainer";
+import { ROUTES } from "@/lib/constants";
+
+const STATS = [
+  { value: "0",    label: "bytes of plaintext uploaded to any server" },
+  { value: "MPC",  label: "computation — no single party sees your list" },
+  { value: "∞",    label: "non-matching contacts fully protected" },
+];
+
+export default function HomePage() {
+  return (
+    <div className="page">
+      {/* Hero */}
+      <section className="min-h-[55vh] flex flex-col justify-center stagger">
+        <div className="mb-8">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-arc/30 bg-arc/5 text-arc text-xs font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-arc animate-pulse-slow" />
+            Built on Arcium + Solana · Privacy-native
+          </span>
+        </div>
+        <h1 className="text-5xl sm:text-7xl font-extrabold text-bright leading-[1.05] tracking-tight max-w-3xl">
+          Find your people.<br />
+          <span className="text-arc">Expose nothing.</span>
+        </h1>
+        <p className="mt-6 text-lg text-dim leading-relaxed max-w-xl">
+          PrivateConnect discovers which of your contacts are already on the platform —
+          without ever uploading your address book in plaintext. Powered by Arcium&apos;s
+          confidential Multi-Party Computation.
+        </p>
+        <div className="mt-10 flex flex-wrap gap-3">
+          <Link href={ROUTES.ONBOARD} className="btn-primary">Get started →</Link>
+          <Link href={ROUTES.DISCOVER} className="btn-ghost">Try the demo</Link>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-4 stagger">
+        {STATS.map((s, i) => (
+          <div key={i} className="card text-center space-y-1 hover:border-arc/20 transition-colors">
+            <p className="text-3xl font-extrabold text-arc">{s.value}</p>
+            <p className="text-xs text-dim leading-relaxed">{s.label}</p>
+          </div>
+        ))}
+      </section>
+
+      {/* How it works */}
+      <section className="mt-20"><PrivacyExplainer /></section>
+
+      {/* Bottom CTA */}
+      <section className="mt-20 rounded-2xl border border-arc/20 bg-arc/5 p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold text-bright">Ready to discover privately?</h2>
+          <p className="text-sm text-dim">Import up to 10 contacts. Results in seconds. Your list stays yours.</p>
+        </div>
+        <Link href={ROUTES.ONBOARD} className="btn-primary shrink-0">Get started →</Link>
+      </section>
+    </div>
+  );
+}
+
+
+----- FILE: app/src/pages/onboard.tsx -----
+import { useState, FormEvent } from "react";
+import { useRouter } from "next/router";
+import Link from "next/link";
+import clsx from "clsx";
+import { ROUTES, UserProfile } from "@/lib/constants";
+
+export const PROFILE_KEY = "pc_profile";
+export function saveProfile(p: UserProfile) {
+  if (typeof window !== "undefined") localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+}
+export function loadProfile(): UserProfile | null {
+  if (typeof window === "undefined") return null;
+  try { const r = localStorage.getItem(PROFILE_KEY); return r ? JSON.parse(r) : null; }
+  catch { return null; }
+}
+
+const COLORS = ["#6EE7B7","#38BDF8","#A78BFA","#FB923C","#34D399","#F472B6"];
+
+export default function OnboardPage() {
+  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [email,    setEmail]    = useState("");
+  const [disc,     setDisc]     = useState(true);
+  const [color,    setColor]    = useState(COLORS[0]);
+  const [errors,   setErrors]   = useState<Record<string,string>>({});
+  const [done,     setDone]     = useState(false);
+
+  const initials = username.split(" ").map(w => w[0]).join("").toUpperCase().slice(0,2) || "?";
+
+  function validate() {
+    const e: Record<string,string> = {};
+    if (username.trim().length < 2) e.username = "At least 2 characters required.";
+    if (username.trim().length > 32) e.username = "32 characters maximum.";
+    if (!email.trim()) e.email = "Email is required.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) e.email = "Enter a valid email.";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!validate()) return;
+    saveProfile({ username: username.trim(), email: email.trim().toLowerCase(), avatar: color, isDiscoverable: disc });
+    setDone(true);
+    setTimeout(() => router.push(ROUTES.DISCOVER), 1200);
+  }
+
+  if (done) return (
+    <div className="page flex items-center justify-center min-h-[60vh]">
+      <div className="text-center space-y-4 animate-fade-up">
+        <div className="w-20 h-20 rounded-2xl mx-auto flex items-center justify-center text-void font-bold text-2xl"
+             style={{ backgroundColor: color }}>{initials}</div>
+        <p className="text-bright font-bold text-xl">Profile created!</p>
+        <p className="text-dim text-sm">Taking you to discovery…</p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="page max-w-xl mx-auto">
+      <div className="stagger space-y-8">
+        <div>
+          <p className="label mb-1">Setup</p>
+          <h1 className="text-3xl font-extrabold text-bright">Create your profile</h1>
+          <p className="text-dim text-sm mt-2">Only matched contacts will ever see your profile.</p>
+        </div>
+
+        {/* Avatar preview */}
+        <div className="card flex items-center gap-5">
+          <div className="w-16 h-16 rounded-xl flex items-center justify-center text-void font-bold text-xl shrink-0 transition-colors duration-200"
+               style={{ backgroundColor: color }}>{initials}</div>
+          <div className="space-y-2">
+            <p className="label">Avatar color</p>
+            <div className="flex gap-2 flex-wrap">
+              {COLORS.map(c => (
+                <button key={c} type="button" onClick={() => setColor(c)}
+                  className={clsx("w-6 h-6 rounded-lg transition-all duration-150",
+                    color === c ? "ring-2 ring-white ring-offset-2 ring-offset-panel scale-110" : "opacity-60 hover:opacity-100 hover:scale-105")}
+                  style={{ backgroundColor: c }} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Username */}
+          <div className="space-y-1.5">
+            <label className="label" htmlFor="username">Username</label>
+            <input id="username" type="text" value={username} onChange={e => setUsername(e.target.value)}
+              placeholder="e.g. alice_dev" maxLength={32}
+              className={clsx("input", errors.username && "border-danger/50")} />
+            {errors.username
+              ? <p className="text-xs text-danger font-mono">{errors.username}</p>
+              : <p className="text-xs text-muted">{username.length}/32</p>}
+          </div>
+
+          {/* Email */}
+          <div className="space-y-1.5">
+            <label className="label" htmlFor="email">Email address</label>
+            <input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className={clsx("input", errors.email && "border-danger/50")} />
+            {errors.email
+              ? <p className="text-xs text-danger font-mono">{errors.email}</p>
+              : <p className="text-xs text-muted">Hashed and encrypted — never stored in plaintext</p>}
+          </div>
+
+          {/* Discoverability */}
+          <div className="card flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-bright">Make me discoverable</p>
+              <p className="text-xs text-dim leading-relaxed">Allow others to find you. Your email is hashed and encrypted before storage.</p>
+            </div>
+            <button type="button" onClick={() => setDisc(d => !d)}
+              className={clsx("relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 mt-0.5", disc ? "bg-arc" : "bg-muted")}
+              aria-pressed={disc}>
+              <span className={clsx("absolute top-1 w-4 h-4 rounded-full bg-void transition-transform duration-200", disc ? "translate-x-6" : "translate-x-1")} />
+            </button>
+          </div>
+
+          <button type="submit" className="btn-primary w-full">Create profile →</button>
+          <p className="text-xs text-center text-muted">
+            Already set up?{" "}
+            <Link href={ROUTES.DISCOVER} className="text-arc hover:underline">Go to discovery</Link>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+
+----- FILE: app/src/pages/discover.tsx -----
+import Link from "next/link";
+import clsx from "clsx";
+import ContactImporter from "@/components/ContactImporter";
+import DiscoveryProgress from "@/components/DiscoveryProgress";
+import PrivacyExplainer from "@/components/PrivacyExplainer";
+import { useDiscovery } from "@/hooks/useDiscovery";
+import { loadProfile } from "./onboard";
+import { ROUTES, MAX_CONTACTS } from "@/lib/constants";
+
+export default function DiscoverPage() {
+  const { state, discover, reset } = useDiscovery();
+  const profile = typeof window !== "undefined" ? loadProfile() : null;
+  const isIdle   = state.phase === "idle";
+  const isActive = !isIdle && state.phase !== "complete" && state.phase !== "failed";
+
+  return (
+    <div className="page">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-10">
+        {/* Main */}
+        <div className="space-y-7">
+          <div className="stagger space-y-2">
+            <p className="label">Contact discovery</p>
+            <h1 className="text-3xl font-extrabold text-bright">Find who&apos;s already here.</h1>
+            <p className="text-dim text-sm leading-relaxed max-w-lg">
+              Import up to {MAX_CONTACTS} contacts. We find who&apos;s registered without ever seeing your full list.
+              Non-matching contacts remain invisible to us — by design.
+            </p>
+          </div>
+
+          {/* Profile strip */}
+          {profile ? (
+            <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-surface animate-fade-up">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-void font-bold text-xs shrink-0"
+                   style={{ backgroundColor: profile.avatar ?? "#6EE7B7" }}>
+                {profile.username.slice(0,2).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-text text-sm font-medium">@{profile.username}</span>
+                <span className={clsx("ml-2 text-xs font-mono", profile.isDiscoverable ? "text-arc" : "text-muted")}>
+                  · {profile.isDiscoverable ? "discoverable" : "hidden"}
+                </span>
+              </div>
+              <Link href={ROUTES.PROFILE} className="text-xs text-dim hover:text-text transition-colors">Edit →</Link>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 p-4 rounded-xl border border-warn/20 bg-warn/5 animate-fade-up">
+              <span className="text-warn">⚠</span>
+              <p className="text-dim text-sm flex-1">
+                No profile yet.{" "}
+                <Link href={ROUTES.ONBOARD} className="text-arc hover:underline">Create one</Link>{" "}
+                to make yourself discoverable too.
+              </p>
+            </div>
+          )}
+
+          {/* Interaction card */}
+          <div className="card space-y-6 animate-fade-up">
+            {isIdle && <ContactImporter onSubmit={discover} disabled={false} />}
+
+            {isActive && (
+              <div className="space-y-6">
+                <ContactImporter onSubmit={discover} disabled={true} />
+                <div className="border-t border-border pt-6">
+                  <DiscoveryProgress phase={state.phase} error={state.error} />
+                </div>
+              </div>
+            )}
+
+            {state.phase === "failed" && (
+              <div className="space-y-5">
+                <DiscoveryProgress phase={state.phase} error={state.error} />
+                <button onClick={reset} className="btn-ghost w-full text-sm">Try again</button>
+              </div>
+            )}
+
+            {state.phase === "complete" && (
+              <div className="space-y-3">
+                <DiscoveryProgress phase={state.phase} />
+                <p className="text-xs text-center text-dim font-mono animate-fade-up">Navigating to results…</p>
+              </div>
+            )}
+          </div>
+
+          {/* Batch summary */}
+          {state.validCount > 0 && isActive && (
+            <div className="card text-xs font-mono space-y-2 animate-fade-up">
+              <p className="label">Batch</p>
+              <p className="text-arc">{state.validCount} contact{state.validCount !== 1 ? "s" : ""} queued for private matching</p>
+            </div>
+          )}
+        </div>
+
+        {/* Sidebar */}
+        <aside className="space-y-5">
+          <PrivacyExplainer compact />
+          <div className="card space-y-4">
+            <p className="label">Quick guide</p>
+            <ol className="space-y-3">
+              {["Paste emails or upload a CSV (up to 10).","Contacts normalized and hashed locally.","Encrypted payload matched against registry.","Only matched profiles shown — nothing else."].map((s,i) => (
+                <li key={i} className="flex gap-3 text-xs text-dim leading-relaxed">
+                  <span className="font-mono text-arc shrink-0">0{i+1}</span>{s}
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div className="p-4 rounded-xl border border-border bg-surface/50 space-y-2">
+            <p className="label">Demo contacts</p>
+            {["bob@example.com","carol@example.com","dave@example.com"].map(e => (
+              <p key={e} className="text-xs font-mono text-arc">{e}</p>
+            ))}
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+
+----- FILE: app/src/pages/results.tsx -----
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import MatchCard from "@/components/MatchCard";
+import PrivacyExplainer from "@/components/PrivacyExplainer";
+import { loadResult } from "@/hooks/useDiscovery";
+import { DiscoveryResult, ROUTES } from "@/lib/constants";
+
+export default function ResultsPage() {
+  const [result, setResult] = useState<DiscoveryResult | null>(null);
+  const [ready,  setReady]  = useState(false);
+
+  useEffect(() => { setResult(loadResult()); setReady(true); }, []);
+
+  if (!ready) return <div className="page flex items-center justify-center min-h-[60vh]"><p className="text-dim font-mono text-sm animate-pulse-slow">Loading…</p></div>;
+
+  if (!result) return (
+    <div className="page max-w-lg mx-auto text-center flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+      <div className="w-16 h-16 rounded-2xl bg-panel border border-border flex items-center justify-center text-2xl">◇</div>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold text-bright">No results yet</h1>
+        <p className="text-dim text-sm">Run a contact discovery first.</p>
+      </div>
+      <Link href={ROUTES.DISCOVER} className="btn-primary">Go to Discovery →</Link>
+    </div>
+  );
+
+  const { matched, total, hiddenCount } = result;
+  const rate = total > 0 ? Math.round((matched.length / total) * 100) : 0;
+
+  if (matched.length === 0) return (
+    <div className="page max-w-lg mx-auto space-y-8 stagger">
+      <div><p className="label mb-1">Discovery complete</p><h1 className="text-3xl font-extrabold text-bright">No contacts found.</h1></div>
+      <div className="grid grid-cols-3 gap-3">
+        <Stat value={total} label="checked" />
+        <Stat value={0} label="matched" accent="arc" />
+        <Stat value={hiddenCount} label="protected" accent="dim" />
+      </div>
+      <div className="card space-y-2">
+        <p className="text-sm font-semibold text-bright flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-arc" />Privacy preserved</p>
+        <p className="text-sm text-dim leading-relaxed">None of your {total} contact{total !== 1 ? "s" : ""} are currently registered. The platform never learned who you searched for.</p>
+      </div>
+      <div className="flex gap-3">
+        <Link href={ROUTES.DISCOVER} className="btn-primary flex-1 text-center">Try again</Link>
+        <Link href={ROUTES.HOME} className="btn-ghost flex-1 text-center">Home</Link>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="page">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
+        <div className="space-y-7">
+          <div className="stagger space-y-2">
+            <p className="label">Discovery complete</p>
+            <h1 className="text-3xl font-extrabold text-bright">
+              {matched.length === 1 ? "1 contact found." : `${matched.length} contacts found.`}
+            </h1>
+            <p className="text-dim text-sm max-w-md">These contacts are registered on PrivateConnect. Non-matching contacts were never revealed to us.</p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 animate-fade-up">
+            <Stat value={total} label="checked" />
+            <Stat value={matched.length} label="matched" accent="arc" />
+            <Stat value={hiddenCount} label="protected" accent="dim" />
+          </div>
+
+          <div className="space-y-3">
+            {matched.map((p, i) => <MatchCard key={p.id} profile={p} index={i} />)}
+          </div>
+
+          <div className="flex gap-3 p-4 rounded-xl border border-arc/20 bg-arc/5 animate-fade-up">
+            <span className="text-arc shrink-0 mt-0.5">◆</span>
+            <p className="text-xs text-dim leading-relaxed">
+              <span className="text-arc font-semibold">Privacy guarantee: </span>
+              {hiddenCount > 0
+                ? `${hiddenCount} contact${hiddenCount !== 1 ? "s" : ""} did not match. Their identities were never exposed — the platform received only an encrypted bitmask.`
+                : "The platform received only an encrypted bitmask — not your contact list."}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3 animate-fade-up">
+            <Link href={ROUTES.DISCOVER} className="btn-primary">Run another discovery</Link>
+            <Link href={ROUTES.HOME} className="btn-ghost">Back home</Link>
+          </div>
+        </div>
+
+        <aside className="space-y-5">
+          <div className="card space-y-4">
+            <p className="label">Match rate</p>
+            <div className="space-y-2">
+              <div className="flex items-end justify-between">
+                <span className="text-4xl font-extrabold text-bright">{rate}%</span>
+                <span className="text-xs text-dim font-mono mb-1">{matched.length}/{total}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-surface overflow-hidden">
+                <div className="h-full bg-arc rounded-full transition-all duration-700" style={{ width: `${rate}%` }} />
+              </div>
+              <p className="text-xs text-muted">{hiddenCount} contact{hiddenCount !== 1 ? "s" : ""} not on platform — identities remain private.</p>
+            </div>
+          </div>
+          <PrivacyExplainer compact />
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ value, label, accent }: { value: number; label: string; accent?: "arc"|"dim" }) {
+  return (
+    <div className="card text-center p-4 space-y-1">
+      <p className={accent === "arc" ? "text-2xl font-extrabold text-arc" : accent === "dim" ? "text-2xl font-extrabold text-dim" : "text-2xl font-extrabold text-bright"}>{value}</p>
+      <p className="text-xs text-muted font-mono">{label}</p>
+    </div>
+  );
+}
+
+
+----- FILE: app/src/pages/profile.tsx -----
+import { useState, useEffect, FormEvent } from "react";
+import Link from "next/link";
+import clsx from "clsx";
+import { ROUTES, UserProfile } from "@/lib/constants";
+import { loadProfile, saveProfile } from "./onboard";
+
+const COLORS = ["#6EE7B7","#38BDF8","#A78BFA","#FB923C","#34D399","#F472B6"];
+
+export default function ProfilePage() {
+  const [profile,  setProfile]  = useState<UserProfile | null>(null);
+  const [editing,  setEditing]  = useState(false);
+  const [saved,    setSaved]    = useState(false);
+  const [username, setUsername] = useState("");
+  const [color,    setColor]    = useState<string | null>(null);
+  const [disc,     setDisc]     = useState(true);
+  const [err,      setErr]      = useState("");
+
+  useEffect(() => {
+    const p = loadProfile();
+    setProfile(p);
+    if (p) { setUsername(p.username); setColor(p.avatar); setDisc(p.isDiscoverable); }
+  }, []);
+
+  const initials = username.split(" ").map(w => w[0]).join("").toUpperCase().slice(0,2) || "?";
+
+  function handleSave(e: FormEvent) {
+    e.preventDefault();
+    if (username.trim().length < 2) { setErr("Username must be at least 2 characters."); return; }
+    if (!profile) return;
+    const updated = { ...profile, username: username.trim(), avatar: color, isDiscoverable: disc };
+    saveProfile(updated); setProfile(updated); setEditing(false); setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  }
+
+  if (!profile) return (
+    <div className="page max-w-lg mx-auto text-center flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+      <div className="w-16 h-16 rounded-2xl bg-panel border border-border flex items-center justify-center text-2xl">◇</div>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold text-bright">No profile yet</h1>
+        <p className="text-dim text-sm">Create a profile to get started.</p>
+      </div>
+      <Link href={ROUTES.ONBOARD} className="btn-primary">Create profile →</Link>
+    </div>
+  );
+
+  return (
+    <div className="page max-w-2xl mx-auto space-y-8">
+      {saved && (
+        <div className="fixed top-20 right-5 z-50 px-4 py-2 rounded-xl border border-arc/30 bg-arc/10 text-arc text-sm font-mono shadow-lg animate-fade-up">
+          ✓ Profile saved
+        </div>
+      )}
+
+      <div className="stagger space-y-1">
+        <p className="label">Your profile</p>
+        <h1 className="text-3xl font-extrabold text-bright">@{profile.username}</h1>
+      </div>
+
+      {/* Identity card */}
+      <div className="card flex items-start gap-6">
+        <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-void font-bold text-2xl shrink-0 shadow-xl"
+             style={{ backgroundColor: color ?? "#6EE7B7" }}>{initials}</div>
+        <div className="flex-1 space-y-3">
+          <div>
+            <p className="text-bright font-semibold text-lg">{profile.username}</p>
+            <p className="text-dim text-sm font-mono">{profile.email}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={clsx("w-2 h-2 rounded-full", profile.isDiscoverable ? "bg-arc animate-pulse-slow" : "bg-muted")} />
+            <span className={clsx("text-xs font-mono", profile.isDiscoverable ? "text-arc" : "text-muted")}>
+              {profile.isDiscoverable ? "Discoverable by contacts" : "Hidden from discovery"}
+            </span>
+          </div>
+          {!editing && <button onClick={() => setEditing(true)} className="text-xs font-mono text-dim hover:text-arc transition-colors">Edit profile →</button>}
+        </div>
+      </div>
+
+      {/* Edit form */}
+      {editing && (
+        <form onSubmit={handleSave} className="card space-y-5 animate-fade-up">
+          <p className="text-sm font-semibold text-bright">Edit profile</p>
+
+          <div className="space-y-2">
+            <p className="label">Avatar color</p>
+            <div className="flex gap-2 flex-wrap">
+              {COLORS.map(c => (
+                <button key={c} type="button" onClick={() => setColor(c)}
+                  className={clsx("w-7 h-7 rounded-lg transition-all", color === c ? "ring-2 ring-white ring-offset-2 ring-offset-panel scale-110" : "opacity-60 hover:opacity-100")}
+                  style={{ backgroundColor: c }} />
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="label" htmlFor="edit-user">Username</label>
+            <input id="edit-user" type="text" value={username} onChange={e => setUsername(e.target.value)} maxLength={32} className="input" />
+            {err && <p className="text-xs text-danger font-mono">{err}</p>}
+          </div>
+
+          <div className="flex items-start justify-between gap-4 p-4 rounded-xl border border-border bg-surface">
+            <div>
+              <p className="text-sm font-semibold text-bright">Discoverable</p>
+              <p className="text-xs text-dim mt-0.5">Allow contacts to find you via private discovery.</p>
+            </div>
+            <button type="button" onClick={() => setDisc(d => !d)}
+              className={clsx("relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 mt-0.5", disc ? "bg-arc" : "bg-muted")}>
+              <span className={clsx("absolute top-1 w-4 h-4 rounded-full bg-void transition-transform duration-200", disc ? "translate-x-6" : "translate-x-1")} />
+            </button>
+          </div>
+
+          <div className="flex gap-3">
+            <button type="submit" className="btn-primary flex-1">Save changes</button>
+            <button type="button" onClick={() => { setEditing(false); setErr(""); }} className="btn-ghost flex-1">Cancel</button>
+          </div>
+        </form>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {[
+          { icon:"◆", color:"arc", title:"Identifier",   body:"Email normalized, SHA-256 hashed, and encrypted with Arcium MXE key before any network call." },
+          { icon:"⬡", color:"sig", title:"Wallet",       body:"Solana wallet connection added in Phase 2 — links your profile to onchain state." },
+          { icon:"◇", color:"arc", title:"Data stored",  body:"Profile stored in browser localStorage only. No backend receives your plaintext data." },
+          { icon:"◈", color:"arc", title:"Discoverability", body:"When enabled, your encrypted identifier is included in the MPC registry for matching." },
+        ].map(({ icon, color: c, title, body }) => (
+          <div key={title} className={clsx("rounded-xl border p-4 space-y-2", c === "arc" ? "border-arc/15 bg-arc/3" : "border-signal/15 bg-signal/3")}>
+            <div className="flex items-center gap-2">
+              <span className={c === "arc" ? "text-arc text-sm" : "text-signal text-sm"}>{icon}</span>
+              <p className={clsx("text-xs font-mono font-semibold uppercase tracking-widest", c === "arc" ? "text-arc" : "text-signal")}>{title}</p>
+            </div>
+            <p className="text-xs text-dim leading-relaxed">{body}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <Link href={ROUTES.DISCOVER} className="btn-primary">Run discovery →</Link>
+        <Link href={ROUTES.HOME} className="btn-ghost">Back home</Link>
+      </div>
+    </div>
+  );
+}
+
+
+
+==================================================
+COMPONENTS
+==================================================
+
+----- FILE: app/src/components/ContactImporter.tsx -----
+import { useState, useRef, useCallback, ChangeEvent, DragEvent } from "react";
+import clsx from "clsx";
+import { MAX_CONTACTS } from "@/lib/constants";
+import { parsePaste, parseCSVFile, normalizeContacts } from "@/lib/normalize";
+
+interface Props { onSubmit: (contacts: string[]) => void; disabled: boolean; }
+type Mode = "paste" | "csv";
+
+export default function ContactImporter({ onSubmit, disabled }: Props) {
+  const [mode, setMode]       = useState<Mode>("paste");
+  const [text, setText]       = useState("");
+  const [drag, setDrag]       = useState(false);
+  const [file, setFile]       = useState<string | null>(null);
+  const [parsed, setParsed]   = useState<string[]>([]);
+  const [fileErr, setFileErr] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const preview = mode === "paste"
+    ? normalizeContacts(parsePaste(text), MAX_CONTACTS)
+    : normalizeContacts(parsed, MAX_CONTACTS);
+
+  const handleFile = useCallback(async (f: File) => {
+    setFileErr(null);
+    if (!f.name.match(/\.(csv|txt)$/i)) { setFileErr("Upload a .csv or .txt file."); return; }
+    try {
+      const rows = await parseCSVFile(f);
+      setParsed(rows); setFile(f.name);
+    } catch { setFileErr("Could not read file."); }
+  }, []);
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); setDrag(false);
+    const f = e.dataTransfer.files?.[0];
+    if (f) handleFile(f);
+  };
+
+  const submit = () => {
+    const contacts = mode === "paste" ? parsePaste(text) : parsed;
+    if (contacts.length) onSubmit(contacts);
+  };
+
+  const canSubmit = !disabled && (
+    mode === "paste" ? text.trim().length > 0 : parsed.length > 0
+  );
+
+  return (
+    <div className="space-y-5">
+      {/* Mode toggle */}
+      <div className="flex gap-1 p-1 bg-surface rounded-lg border border-border w-fit">
+        {(["paste","csv"] as Mode[]).map(m => (
+          <button key={m} onClick={() => setMode(m)} disabled={disabled}
+            className={clsx("px-4 py-1.5 rounded-md text-sm font-mono transition-all",
+              mode === m ? "bg-panel text-bright shadow-sm" : "text-dim hover:text-text")}>
+            {m === "paste" ? "Paste emails" : "Upload CSV"}
+          </button>
+        ))}
+      </div>
+
+      {/* Paste */}
+      {mode === "paste" && (
+        <textarea value={text} onChange={e => setText(e.target.value)}
+          disabled={disabled} rows={7}
+          placeholder={`Paste up to ${MAX_CONTACTS} emails, one per line or comma-separated.\n\nbob@example.com\ncarol@example.com`}
+          className={clsx("input resize-none font-mono", disabled && "opacity-40 cursor-not-allowed")} />
+      )}
+
+      {/* CSV drop zone */}
+      {mode === "csv" && (
+        <div onDragOver={e => { e.preventDefault(); setDrag(true); }}
+             onDragLeave={() => setDrag(false)} onDrop={handleDrop}
+             onClick={() => !disabled && fileRef.current?.click()}
+             className={clsx("border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all",
+               drag ? "border-arc bg-arc/5" : disabled ? "border-border opacity-40 cursor-not-allowed"
+                    : "border-border hover:border-muted")}>
+          <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden"
+                 onChange={(e: ChangeEvent<HTMLInputElement>) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+          <p className="text-2xl mb-2">{file ? "✓" : "↑"}</p>
+          {file
+            ? <><p className="text-sm font-mono text-arc">{file}</p><p className="text-xs text-dim">Click to replace</p></>
+            : <><p className="text-sm text-text">Drop CSV here or click to browse</p><p className="text-xs text-dim mt-1">.csv or .txt</p></>
+          }
+        </div>
+      )}
+      {fileErr && <p className="text-xs text-danger font-mono">{fileErr}</p>}
+
+      {/* Validation summary */}
+      {(text.trim() || file) && (
+        <div className="space-y-1 text-xs font-mono">
+          {preview.valid.length > 0 && <p className="text-arc">✓ {preview.valid.length} valid contact{preview.valid.length !== 1 ? "s" : ""}{preview.truncated ? ` (capped at ${MAX_CONTACTS})` : ""}</p>}
+          {preview.duplicates > 0   && <p className="text-dim">− {preview.duplicates} duplicate{preview.duplicates !== 1 ? "s" : ""} removed</p>}
+          {preview.invalid.length > 0 && <p className="text-warn">⚠ {preview.invalid.length} invalid skipped</p>}
+        </div>
+      )}
+
+      {/* Submit */}
+      <button onClick={submit} disabled={!canSubmit} className="btn-primary w-full">
+        {disabled ? "Running discovery…" : "Find My Contacts"}
+      </button>
+
+      {/* Demo hint */}
+      {!disabled && (
+        <p className="text-xs text-muted text-center">
+          Try{" "}
+          <button onClick={() => { setMode("paste"); setText("bob@example.com\ncarol@example.com\ndave@example.com\neve@example.com\nstranger@test.com"); }}
+            className="text-arc hover:underline">the sample contacts</button>{" "}
+          to see a live demo.
+        </p>
+      )}
+    </div>
+  );
+}
+
+
+----- FILE: app/src/components/DiscoveryProgress.tsx -----
+import clsx from "clsx";
+import { DiscoveryPhase, PHASE_META } from "@/lib/constants";
+
+const ORDER: DiscoveryPhase[] = ["normalizing","encrypting","submitting","processing","complete"];
+
+export default function DiscoveryProgress({ phase, error }: { phase: DiscoveryPhase; error?: string | null }) {
+  if (phase === "idle") return null;
+
+  if (phase === "failed") return (
+    <div className="rounded-xl border border-danger/30 bg-danger/5 p-5 space-y-2 animate-fade-up">
+      <div className="flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-danger" />
+        <span className="font-mono text-sm text-danger font-semibold">Discovery failed</span>
+      </div>
+      <p className="text-sm text-dim">{error ?? "An unexpected error occurred. No data was exposed."}</p>
+      <p className="text-xs font-mono text-muted pt-1">Privacy guarantee preserved — nothing was transmitted.</p>
+    </div>
+  );
+
+  const cur = ORDER.indexOf(phase);
+
+  return (
+    <div className="space-y-4 animate-fade-up">
+      <div className="rounded-xl border border-arc/25 bg-arc/5 p-4 space-y-1">
+        <div className="flex items-center gap-2">
+          {phase === "complete"
+            ? <span className="w-2 h-2 rounded-full bg-arc" />
+            : <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-arc opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-arc" /></span>
+          }
+          <span className="font-mono text-sm text-arc font-semibold">{PHASE_META[phase].label}</span>
+        </div>
+        <p className="text-xs text-dim pl-4">{PHASE_META[phase].detail}</p>
+      </div>
+
+      <div className="space-y-1.5">
+        {ORDER.map((p, i) => {
+          const done   = i < cur || phase === "complete";
+          const active = p === phase && phase !== "complete";
+          return (
+            <div key={p} className={clsx("flex items-center gap-3 px-3 py-2 rounded-lg transition-colors", active && "bg-panel")}>
+              <div className="w-4 h-4 flex items-center justify-center shrink-0">
+                {done
+                  ? <svg className="w-4 h-4 text-arc" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  : active
+                  ? <span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-arc opacity-60"/><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-arc"/></span>
+                  : <span className="w-1.5 h-1.5 rounded-full bg-muted" />
+                }
+              </div>
+              <span className={clsx("text-xs transition-colors",
+                done ? "text-arc" : active ? "text-bright font-medium" : "text-muted"
+              )}>{PHASE_META[p].label}</span>
+              {done && <span className="ml-auto text-xs font-mono text-arc/50">done</span>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
+----- FILE: app/src/components/MatchCard.tsx -----
+import { MockProfile } from "@/lib/constants";
+import { avatarColor, getInitials } from "@/lib/mockDiscovery";
+
+export default function MatchCard({ profile, index }: { profile: MockProfile; index: number }) {
+  const bg  = avatarColor(profile.id);
+  const ini = getInitials(profile.name);
+  return (
+    <div className="group relative rounded-2xl border border-border bg-panel p-5
+                    flex items-start gap-4 hover:border-arc/30 transition-all duration-300
+                    hover:shadow-lg hover:shadow-arc/5 animate-fade-up"
+         style={{ animationDelay: `${index * 80}ms`, animationFillMode: "forwards", opacity: 0 }}>
+      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500
+                      bg-gradient-to-br from-arc/3 via-transparent to-transparent pointer-events-none" />
+      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-void font-bold text-sm shrink-0"
+           style={{ backgroundColor: bg }}>{ini}</div>
+      <div className="flex-1 min-w-0 space-y-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h3 className="font-semibold text-bright text-sm">{profile.name}</h3>
+          <span className="px-1.5 py-0.5 rounded-full border border-arc/20 bg-arc/5 text-arc text-xs font-mono flex items-center gap-1">
+            <span className="w-1 h-1 rounded-full bg-arc" />matched
+          </span>
+        </div>
+        <p className="text-xs text-dim font-mono">@{profile.username}</p>
+        <p className="text-xs text-muted">{profile.email}</p>
+        <p className="text-xs font-mono text-muted/60 pt-0.5">
+          {profile.wallet.slice(0,6)}…{profile.wallet.slice(-4)}
+        </p>
+      </div>
+      <div className="shrink-0 text-right">
+        <p className="text-xs text-muted">joined</p>
+        <p className="text-xs font-mono text-dim">{profile.joinedAt}</p>
+      </div>
+    </div>
+  );
+}
+
+
+----- FILE: app/src/components/PrivacyExplainer.tsx -----
+import clsx from "clsx";
+
+const STEPS = [
+  { n:"01", tag:"Local",      color:"arc",    title:"Contacts hashed locally",        body:"Each email is normalized and SHA-256 hashed before any network call. Your list never leaves your device in plaintext." },
+  { n:"02", tag:"Arcium MPC", color:"signal", title:"Identifiers encrypted",          body:"Hashed identifiers are encrypted with Arcium's x25519 key. Only the MPC cluster can operate on this data — no server or API." },
+  { n:"03", tag:"Arcium MPC", color:"signal", title:"Private set intersection",       body:"Arcium nodes jointly compute the overlap. No single node sees the full picture. Non-matches are mathematically invisible." },
+  { n:"04", tag:"Local",      color:"arc",    title:"Only matches returned",          body:"An encrypted bitmask returns to your browser. You decrypt it locally. Only matched profiles are ever revealed." },
+];
+
+export default function PrivacyExplainer({ compact = false }: { compact?: boolean }) {
+  if (compact) return (
+    <div className="rounded-xl border border-border bg-panel/50 p-4 space-y-3">
+      <p className="label">Privacy guarantee</p>
+      <p className="text-xs text-dim leading-relaxed">
+        Contacts hashed and encrypted before leaving your browser. Arcium MPC computes the match on encrypted data.
+        Non-matching contacts are mathematically invisible to the platform.
+      </p>
+      <div className="flex flex-wrap gap-2 pt-1">
+        {["Zero plaintext upload","Non-matches hidden","Client-side decrypt"].map(t => (
+          <span key={t} className="px-2 py-0.5 rounded-full border border-arc/20 bg-arc/5 text-arc text-xs font-mono">
+            {t}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <section className="space-y-6">
+      <div>
+        <p className="label mb-1">How it works</p>
+        <h2 className="text-2xl font-bold text-bright">Four steps. Zero exposure.</h2>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {STEPS.map(s => (
+          <div key={s.n} className="card space-y-3 hover:border-border/60 transition-colors">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-xs text-muted">{s.n}</span>
+              <span className={clsx("font-mono text-xs px-2 py-0.5 rounded-full border",
+                s.color === "arc"
+                  ? "text-arc border-arc/30 bg-arc/5"
+                  : "text-signal border-signal/30 bg-signal/5"
+              )}>{s.tag}</span>
+            </div>
+            <p className="font-semibold text-text text-sm">{s.title}</p>
+            <p className="text-xs text-dim leading-relaxed">{s.body}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+
+----- FILE: app/src/components/WalletButton.tsx -----
+import { useState } from "react";
+import clsx from "clsx";
+
+export default function WalletButton({ className }: { className?: string }) {
+  const [connected, setConnected] = useState(false);
+  const MOCK = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAs";
+  return connected ? (
+    <button onClick={() => setConnected(false)}
+      className={clsx("flex items-center gap-2 px-3 py-1.5 rounded-lg border border-arc/30 bg-arc/5 text-arc text-xs font-mono hover:bg-arc/10 transition-colors", className)}>
+      <span className="w-1.5 h-1.5 rounded-full bg-arc animate-pulse-slow" />
+      {MOCK.slice(0,4)}…{MOCK.slice(-4)}
+    </button>
+  ) : (
+    <button onClick={() => setConnected(true)}
+      className={clsx("px-3 py-1.5 rounded-lg border border-border text-dim text-xs font-mono hover:border-arc/30 hover:text-arc transition-all", className)}>
+      Connect Wallet
+    </button>
+  );
+}
+
+
+
+==================================================
+HOOKS
+==================================================
+
+----- FILE: app/src/hooks/useDiscovery.ts -----
+import { useState, useCallback, useRef } from "react";
+import { useRouter } from "next/router";
+import { DiscoveryPhase, DiscoveryResult, ROUTES, MAX_CONTACTS } from "@/lib/constants";
+import { normalizeContacts, parsePaste } from "@/lib/normalize";
+import { runDiscovery } from "@/lib/mockDiscovery";
+
+export interface DiscoveryState {
+  phase: DiscoveryPhase;
+  result: DiscoveryResult | null;
+  error: string | null;
+  validCount: number;
+}
+
+const INIT: DiscoveryState = { phase: "idle", result: null, error: null, validCount: 0 };
+const RESULT_KEY = "pc_result";
+const DELAY = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
+
+export function useDiscovery() {
+  const router = useRouter();
+  const [state, setState] = useState<DiscoveryState>(INIT);
+  const cancelled = useRef(false);
+
+  const set = (phase: DiscoveryPhase, extra: Partial<DiscoveryState> = {}) => {
+    if (!cancelled.current) setState(s => ({ ...s, phase, ...extra }));
+  };
+
+  const discover = useCallback(async (rawContacts: string[]) => {
+    cancelled.current = false;
+
+    // Phase: normalizing
+    set("normalizing");
+    await DELAY(700);
+    const { valid, invalid, truncated } = normalizeContacts(rawContacts, MAX_CONTACTS);
+
+    if (valid.length === 0) {
+      set("failed", { error: "No valid email addresses found. Check your input and try again." });
+      return;
+    }
+
+    set("normalizing", { validCount: valid.length });
+    await DELAY(500);
+
+    // Phase: encrypting (mock — UI tells the privacy story)
+    set("encrypting");
+    await DELAY(900);
+
+    // Phase: submitting
+    set("submitting");
+    await DELAY(700);
+
+    // Phase: processing (Arcium MPC simulation)
+    set("processing");
+    await DELAY(1400);
+
+    // Run mock engine
+    const output = await runDiscovery({ contacts: valid });
+
+    const result: DiscoveryResult = {
+      matched:     output.matched,
+      total:       output.totalInput,
+      hiddenCount: output.hiddenCount,
+    };
+
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(RESULT_KEY, JSON.stringify(result));
+    }
+
+    set("complete", { result });
+    await DELAY(600);
+    router.push(ROUTES.RESULTS);
+  }, [router]);
+
+  const reset = useCallback(() => {
+    cancelled.current = true;
+    setState(INIT);
+  }, []);
+
+  return { state, discover, reset };
+}
+
+export function loadResult(): DiscoveryResult | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem("pc_result");
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+
+
+==================================================
+LIB
+==================================================
+
+----- FILE: app/src/lib/constants.ts -----
+export const APP_NAME    = "PrivateConnect";
+export const MAX_CONTACTS = 10;
+
+export const ROUTES = {
+  HOME:     "/",
+  ONBOARD:  "/onboard",
+  DISCOVER: "/discover",
+  RESULTS:  "/results",
+  PROFILE:  "/profile",
+} as const;
+
+export interface MockProfile {
+  id: string; name: string; email: string;
+  username: string; avatar: string | null;
+  wallet: string; joinedAt: string;
+}
+
+export interface UserProfile {
+  username: string; email: string;
+  avatar: string | null; isDiscoverable: boolean;
+}
+
+export type DiscoveryPhase =
+  | "idle" | "normalizing" | "encrypting"
+  | "submitting" | "processing" | "complete" | "failed";
+
+export interface DiscoveryResult {
+  matched: MockProfile[];
+  total: number;
+  hiddenCount: number;
+}
+
+export const MOCK_REGISTRY: Record<string, MockProfile> = {
+  "bob@example.com":   { id:"usr_bob",   name:"Bob Nakamura",  email:"bob@example.com",   username:"bobnakamura",  avatar:null, wallet:"7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAs", joinedAt:"2025-11-12" },
+  "carol@example.com": { id:"usr_carol", name:"Carol Oduya",   email:"carol@example.com", username:"caroloduya",   avatar:null, wallet:"4mZ3uH9cN5pXqK2wYgRzLvTnJsFbDeWa1CiQoBhMtSE", joinedAt:"2025-12-03" },
+  "dave@example.com":  { id:"usr_dave",  name:"Dave Eze",      email:"dave@example.com",  username:"daveeze",      avatar:null, wallet:"9rP8sU3vT6mNkL7oAqYhCxBdFjGwZiEn2McHtRlQbKs", joinedAt:"2026-01-18" },
+};
+
+export const PHASE_META: Record<DiscoveryPhase, { label: string; detail: string }> = {
+  idle:        { label: "Ready",       detail: "Waiting to start." },
+  normalizing: { label: "Normalizing", detail: "Preparing contacts locally. Nothing leaves your device." },
+  encrypting:  { label: "Encrypting",  detail: "Contacts encrypted with Arcium before any network call." },
+  submitting:  { label: "Submitting",  detail: "Sending encrypted payload to Solana." },
+  processing:  { label: "Computing",   detail: "Arcium MPC nodes matching in encrypted space." },
+  complete:    { label: "Complete",    detail: "Results decrypted client-side. Only matches revealed." },
+  failed:      { label: "Failed",      detail: "Something went wrong. No contact data was exposed." },
+};
+
+
+----- FILE: app/src/lib/mockDiscovery.ts -----
+/**
+ * Mock PSI engine — Phase 1.
+ * Replace import in useDiscovery.ts with realDiscovery.ts for production.
+ * Interface is identical — no other changes needed.
+ */
+import { MockProfile, MOCK_REGISTRY } from "./constants";
+
+export interface DiscoveryInput  { contacts: string[]; }
+export interface DiscoveryOutput { matched: MockProfile[]; hiddenCount: number; totalInput: number; }
+
+export async function runDiscovery(input: DiscoveryInput): Promise<DiscoveryOutput> {
+  const matched: MockProfile[] = [];
+  let hiddenCount = 0;
+  for (const email of input.contacts) {
+    const profile = MOCK_REGISTRY[email];
+    if (profile) matched.push(profile);
+    else hiddenCount++;
+  }
+  return { matched, hiddenCount, totalInput: input.contacts.length };
+}
+
+export function avatarColor(id: string): string {
+  const COLORS = ["#6EE7B7","#38BDF8","#A78BFA","#FB923C","#34D399","#F472B6"];
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return COLORS[h % COLORS.length];
+}
+
+export function getInitials(name: string): string {
+  return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+}
+
+
+----- FILE: app/src/lib/normalize.ts -----
+import Papa from "papaparse";
+
+export interface NormalizeResult {
+  valid: string[]; invalid: string[];
+  duplicates: number; truncated: boolean;
+}
+
+export function normalizeEmail(raw: string): string | null {
+  const v = raw.trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) && v.length <= 256 ? v : null;
+}
+
+export function normalizeContacts(raw: string[], max = 10): NormalizeResult {
+  const seen = new Set<string>();
+  const valid: string[] = [];
+  const invalid: string[] = [];
+  let duplicates = 0;
+  for (const entry of raw) {
+    const n = normalizeEmail(entry);
+    if (!n) { if (entry.trim()) invalid.push(entry.trim()); continue; }
+    if (seen.has(n)) { duplicates++; continue; }
+    seen.add(n);
+    valid.push(n);
+  }
+  const truncated = valid.length > max;
+  return { valid: valid.slice(0, max), invalid, duplicates, truncated };
+}
+
+export function parsePaste(text: string): string[] {
+  return text.split(/[\n,]+/).map(v => v.trim()).filter(Boolean);
+}
+
+export async function parseCSVFile(file: File): Promise<string[]> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const text = e.target?.result as string;
+      const result = Papa.parse<string[]>(text, { skipEmptyLines: true });
+      resolve(result.data.map(row => (Array.isArray(row) ? row[0] : row)).filter(Boolean));
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsText(file);
+  });
+}
+
+
