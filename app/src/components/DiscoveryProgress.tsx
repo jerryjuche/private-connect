@@ -20,7 +20,7 @@ export default function DiscoveryProgress({
 
   if (phase === "failed") {
     return (
-      <div className="card-highlight p-5">
+      <div className="card-accent p-5">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-danger" />
@@ -30,16 +30,13 @@ export default function DiscoveryProgress({
           </div>
 
           <p className="text-sm leading-7 text-dim">
-            {error ?? "An unexpected error occurred. No contact data was exposed."}
+            {error ?? "The request could not be completed. No contact identities were revealed."}
           </p>
 
-          <div className="rounded-xl border border-border bg-surface/70 px-4 py-3">
-            <p className="text-xs font-mono uppercase tracking-[0.16em] text-dim">
-              Privacy status
-            </p>
+          <div className="rounded-xl border border-border bg-surface/80 px-4 py-3">
+            <p className="label">Current status</p>
             <p className="mt-2 text-sm text-text">
-              The request did not produce a result and no plaintext contact data
-              was persisted.
+              The request ended before producing a result view.
             </p>
           </div>
         </div>
@@ -51,7 +48,7 @@ export default function DiscoveryProgress({
 
   return (
     <div className="space-y-5">
-      <div className="card-highlight p-5">
+      <div className="card-accent p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <p className="label">Execution status</p>
@@ -63,18 +60,13 @@ export default function DiscoveryProgress({
             </p>
           </div>
 
-          <span
-            className={clsx(
-              "badge shrink-0",
-              phase === "complete" ? "badge-green" : "badge-cyan"
-            )}
-          >
-            {phase === "complete" ? "finalized" : "in progress"}
+          <span className={phase === "complete" ? "badge-accent" : "badge-signal"}>
+            {phase === "complete" ? "finalized" : "active"}
           </span>
         </div>
       </div>
 
-      <div className="card-plain p-5">
+      <div className="card-muted p-5">
         <div className="space-y-4">
           {ORDER.map((step, index) => {
             const done = index < currentIndex || phase === "complete";
@@ -98,31 +90,19 @@ export default function DiscoveryProgress({
 
                   {index < ORDER.length - 1 && (
                     <span
-                      className={clsx(
-                        "mt-2 h-10 w-px",
-                        done ? "bg-arc/30" : "bg-border"
-                      )}
+                      className={clsx("mt-2 h-10 w-px", done ? "bg-arc/30" : "bg-border")}
                     />
                   )}
                 </div>
 
                 <div className="min-w-0 flex-1 pb-2">
                   <div className="flex items-center gap-2">
-                    <p
-                      className={clsx(
-                        "text-sm font-medium",
-                        done
-                          ? "text-bright"
-                          : active
-                          ? "text-bright"
-                          : "text-dim"
-                      )}
-                    >
+                    <p className={clsx("text-sm font-medium", done || active ? "text-bright" : "text-dim")}>
                       {PHASE_META[step].label}
                     </p>
 
-                    {done && <span className="badge-green">done</span>}
-                    {active && <span className="badge-cyan">active</span>}
+                    {done && <span className="badge-accent">done</span>}
+                    {active && <span className="badge-signal">current</span>}
                   </div>
 
                   <p className="mt-1 text-sm leading-7 text-dim">
