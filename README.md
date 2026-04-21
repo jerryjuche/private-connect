@@ -1,16 +1,10 @@
-Here’s a **submission-grade README** tuned to your current MVP: five frontend screens, seven explicit discovery phases, a 10-contact batch cap, and a demo result model that reveals only confirmed matches while keeping non-matches hidden. It also reflects the broader intended architecture direction of **Next.js frontend + Solana program + Arcium confidential computation**, while being honest that the current branch is a polished frontend/demo flow.   
 
-Use this as your root `README.md`:
 
-````markdown
 # PrivateConnect
 
 > Discover which of your contacts are already on the platform — without disclosing your address book.
 
-[![Frontend MVP](https://img.shields.io/badge/status-frontend%20mvp-0f172a?style=flat-square)](#current-scope)
-[![Privacy Model](https://img.shields.io/badge/privacy-selective%20reveal-1f2937?style=flat-square)](#privacy-guarantees)
-[![Discovery Flow](https://img.shields.io/badge/phases-7-1f2937?style=flat-square)](#discovery-flow)
-[![Batch Size](https://img.shields.io/badge/batch%20size-10-1f2937?style=flat-square)](#demo-in-2-minutes)
+
 
 PrivateConnect is a privacy-preserving contact discovery product concept and frontend MVP. Instead of uploading a full address book to a central service, the user imports a small batch of contacts, the system prepares identifiers locally, and the product reveals only confirmed overlap.
 
@@ -227,24 +221,15 @@ That is the key demo story:
 
 ## Screenshots
 
-Add your screenshots here before submission.
+![Landing](app/docs/screenshots/landing.png)
 
-```markdown
-![Landing](docs/screenshots/landing.png)
-![Onboarding](docs/screenshots/onboard.png)
-![Discover](docs/screenshots/discover.png)
-![Results](docs/screenshots/results.png)
-![Profile](docs/screenshots/profile.png)
-```
+![Onboarding](app/docs/screenshots/onboarding.png)
 
-Suggested capture order:
+![Discover](app/docs/screenshots/discover.png)
 
-1. Landing hero
-2. Onboarding form
-3. Discover input state
-4. Discover processing state
-5. Results page with 3 matches
-6. Profile / discoverability settings
+![Results](app/docs/screenshots/results.png)
+
+![Profile](app/docs/screenshots/profile.png)
 
 ---
 
