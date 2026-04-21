@@ -38,7 +38,7 @@ export default function ContactImporter({ onSubmit, disabled }: Props) {
       setParsed(rows);
       setFile(f.name);
     } catch {
-      setFileErr("Could not read file.");
+      setFileErr("The file could not be read.");
     }
   }, []);
 
@@ -71,20 +71,20 @@ export default function ContactImporter({ onSubmit, disabled }: Props) {
                   disabled={disabled}
                   onClick={() => setMode(m)}
                   className={clsx(
-                    "rounded-xl px-4 py-2 text-xs font-mono uppercase tracking-[0.16em] transition-all duration-200",
+                    "rounded-xl px-4 py-2 text-xs font-mono uppercase tracking-[0.14em] transition-all duration-200",
                     active
-                      ? "bg-panel text-bright shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                      ? "border border-border bg-panel text-bright"
                       : "text-dim hover:text-text"
                   )}
                 >
-                  {m === "paste" ? "Paste emails" : "Upload file"}
+                  {m === "paste" ? "Paste contacts" : "Upload file"}
                 </button>
               );
             })}
           </div>
         </div>
 
-        <span className="badge-subtle">{MAX_CONTACTS} max / batch</span>
+        <span className="badge-muted">{MAX_CONTACTS} max / request</span>
       </div>
 
       {mode === "paste" && (
@@ -101,12 +101,15 @@ export default function ContactImporter({ onSubmit, disabled }: Props) {
               disabled && "cursor-not-allowed opacity-50"
             )}
           />
+          <p className="text-xs text-dim">
+            One contact per line works best. Comma-separated input is also supported.
+          </p>
         </div>
       )}
 
       {mode === "csv" && (
         <div className="space-y-3">
-          <label className="label">Registry candidate file</label>
+          <label className="label">Import file</label>
 
           <div
             onDragOver={(e) => {
@@ -117,12 +120,12 @@ export default function ContactImporter({ onSubmit, disabled }: Props) {
             onDrop={handleDrop}
             onClick={() => !disabled && fileRef.current?.click()}
             className={clsx(
-              "relative overflow-hidden rounded-2xl border bg-surface/60 p-8 text-center transition-all duration-200",
+              "rounded-2xl border bg-surface/60 p-8 text-center transition-all duration-200",
               drag
                 ? "border-arc bg-arc/5"
                 : disabled
                 ? "cursor-not-allowed border-border opacity-50"
-                : "cursor-pointer border-border hover:border-arc/20 hover:bg-panel/70"
+                : "cursor-pointer border-border hover:border-arc/20 hover:bg-panel/80"
             )}
           >
             <input
@@ -137,7 +140,7 @@ export default function ContactImporter({ onSubmit, disabled }: Props) {
             />
 
             <div className="space-y-3">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-white/6 bg-panel text-xl text-arc shadow-lg">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-panel text-lg text-arc">
                 {file ? "✓" : "↑"}
               </div>
 
@@ -154,52 +157,50 @@ export default function ContactImporter({ onSubmit, disabled }: Props) {
                     Drop a CSV or TXT file
                   </p>
                   <p className="text-xs text-dim">
-                    One email per line or first column
+                    First column or one email per line
                   </p>
                 </div>
               )}
             </div>
           </div>
 
-          {fileErr && (
-            <p className="text-xs font-mono text-danger">{fileErr}</p>
-          )}
+          {fileErr && <p className="text-xs font-mono text-danger">{fileErr}</p>}
         </div>
       )}
 
       {(text.trim() || file) && (
         <div className="grid gap-3 sm:grid-cols-3">
-          <div className="card-plain p-4">
+          <div className="card-muted p-4">
             <p className="label">Valid</p>
-            <p className="mt-2 text-2xl font-bold text-arc">
-              {preview.valid.length}
-            </p>
-            <p className="mt-1 text-xs text-dim">
-              ready for confidential matching
-            </p>
+            <p className="mt-2 text-2xl font-bold text-arc">{preview.valid.length}</p>
+            <p className="mt-1 text-xs text-dim">ready for matching</p>
           </div>
 
-          <div className="card-plain p-4">
+          <div className="card-muted p-4">
             <p className="label">Duplicates</p>
-            <p className="mt-2 text-2xl font-bold text-bright">
-              {preview.duplicates}
-            </p>
+            <p className="mt-2 text-2xl font-bold text-bright">{preview.duplicates}</p>
             <p className="mt-1 text-xs text-dim">removed before submission</p>
           </div>
 
-          <div className="card-plain p-4">
+          <div className="card-muted p-4">
             <p className="label">Invalid</p>
-            <p className="mt-2 text-2xl font-bold text-warn">
-              {preview.invalid.length}
-            </p>
-            <p className="mt-1 text-xs text-dim">excluded from the batch</p>
+            <p className="mt-2 text-2xl font-bold text-warn">{preview.invalid.length}</p>
+            <p className="mt-1 text-xs text-dim">excluded from this request</p>
           </div>
+        </div>
+      )}
+
+      {preview.truncated && (
+        <div className="rounded-xl border border-warn/20 bg-warn/5 px-4 py-3">
+          <p className="text-xs font-mono uppercase tracking-[0.14em] text-warn">
+            Batch trimmed to {MAX_CONTACTS} contacts
+          </p>
         </div>
       )}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button onClick={submit} disabled={!canSubmit} className="btn-primary">
-          {disabled ? "Running discovery…" : "Run private discovery"}
+          {disabled ? "Discovery in progress…" : "Run private discovery"}
         </button>
 
         {!disabled && (
@@ -213,7 +214,7 @@ export default function ContactImporter({ onSubmit, disabled }: Props) {
             }}
             className="btn-ghost"
           >
-            Load demo contacts
+            Load sample batch
           </button>
         )}
       </div>

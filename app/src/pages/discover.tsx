@@ -10,7 +10,6 @@ import { ROUTES, MAX_CONTACTS, UserProfile } from "@/lib/constants";
 
 export default function DiscoverPage() {
   const { state, discover, reset } = useDiscovery();
-
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
@@ -19,7 +18,6 @@ export default function DiscoverPage() {
     setHydrated(true);
   }, []);
 
-  const isIdle = state.phase === "idle";
   const isActive =
     state.phase !== "idle" &&
     state.phase !== "complete" &&
@@ -38,7 +36,7 @@ export default function DiscoverPage() {
             Run a private match against the platform registry.
           </h1>
 
-          <p className="section-body">
+          <p className="section-copy">
             Import up to {MAX_CONTACTS} contacts and compute verified overlaps
             without exposing the rest of your list. Only matched profiles are
             revealed back to you.
@@ -48,23 +46,22 @@ export default function DiscoverPage() {
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
-          {/* Hydration-safe profile strip */}
           {!hydrated ? (
-            <div className="card-plain p-4">
+            <div className="card-muted p-4">
               <div className="flex items-center gap-4">
-                <div className="h-11 w-11 rounded-2xl bg-panel border border-border animate-pulse" />
+                <div className="h-11 w-11 animate-pulse rounded-2xl bg-panel" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 w-36 rounded bg-panel animate-pulse" />
-                  <div className="h-3 w-56 rounded bg-panel animate-pulse" />
+                  <div className="h-4 w-36 animate-pulse rounded bg-panel" />
+                  <div className="h-3 w-52 animate-pulse rounded bg-panel" />
                 </div>
               </div>
             </div>
           ) : profile ? (
-            <div className="card-plain p-4">
+            <div className="card-muted p-4">
               <div className="flex items-center gap-4">
                 <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-sm font-bold text-void shadow-lg"
-                  style={{ backgroundColor: profile.avatar ?? "#6EE7B7" }}
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-sm font-bold text-void"
+                  style={{ backgroundColor: profile.avatar ?? "#63C7A2" }}
                 >
                   {profile.username.slice(0, 2).toUpperCase()}
                 </div>
@@ -76,18 +73,15 @@ export default function DiscoverPage() {
                     </p>
                     <span
                       className={clsx(
-                        "badge",
-                        profile.isDiscoverable ? "badge-green" : "badge-subtle"
+                        profile.isDiscoverable ? "badge-accent" : "badge-muted"
                       )}
                     >
-                      {profile.isDiscoverable
-                        ? "discoverable"
-                        : "hidden from registry"}
+                      {profile.isDiscoverable ? "discoverable" : "hidden"}
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-dim">
-                    The current discovery request runs against the active
-                    encrypted registry state.
+                    The current discovery request runs against the active encrypted
+                    registry state.
                   </p>
                 </div>
 
@@ -97,7 +91,7 @@ export default function DiscoverPage() {
               </div>
             </div>
           ) : (
-            <div className="card-highlight p-4">
+            <div className="card-accent p-4">
               <div className="flex items-start gap-3">
                 <span className="mt-0.5 text-warn">⚠</span>
                 <div className="space-y-1">
@@ -106,8 +100,7 @@ export default function DiscoverPage() {
                   </p>
                   <p className="text-sm text-dim">
                     You can still try the discovery flow, but creating a profile
-                    lets others discover you through the same private matching
-                    model.
+                    lets others discover you through the same private matching model.
                   </p>
                   <Link href={ROUTES.ONBOARD} className="btn-ghost px-0">
                     Create profile →
@@ -120,44 +113,41 @@ export default function DiscoverPage() {
           <section className="card p-6 sm:p-7">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div className="space-y-1">
-                <p className="section-label">Private discovery request</p>
+                <p className="label">Private discovery request</p>
                 <h2 className="text-2xl font-semibold tracking-tight text-bright">
                   Confidential contact import
                 </h2>
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <span className="badge-subtle">
-                  max {MAX_CONTACTS} contacts
-                </span>
-                <span className="badge-cyan">local normalization</span>
+                <span className="badge-muted">max {MAX_CONTACTS} contacts</span>
+                <span className="badge-signal">local normalization</span>
               </div>
             </div>
 
             <ContactImporter onSubmit={discover} disabled={isActive} />
 
             {(isActive || state.phase === "failed" || state.phase === "complete") && (
-              <div className="divider" />
-            )}
+              <>
+                <div className="divider" />
+                <div className="space-y-4">
+                  <DiscoveryProgress phase={state.phase} error={state.error} />
 
-            {(isActive || state.phase === "failed" || state.phase === "complete") && (
-              <div className="space-y-4">
-                <DiscoveryProgress phase={state.phase} error={state.error} />
+                  {state.phase === "failed" && (
+                    <div className="pt-1">
+                      <button onClick={reset} className="btn-secondary">
+                        Reset request
+                      </button>
+                    </div>
+                  )}
 
-                {state.phase === "failed" && (
-                  <div className="pt-1">
-                    <button onClick={reset} className="btn-secondary w-full sm:w-auto">
-                      Reset request
-                    </button>
-                  </div>
-                )}
-
-                {state.phase === "complete" && (
-                  <p className="text-xs font-mono uppercase tracking-[0.16em] text-dim">
-                    Redirecting to matched results…
-                  </p>
-                )}
-              </div>
+                  {state.phase === "complete" && (
+                    <p className="text-xs font-mono uppercase tracking-[0.14em] text-dim">
+                      Redirecting to matched results…
+                    </p>
+                  )}
+                </div>
+              </>
             )}
           </section>
 
@@ -181,8 +171,8 @@ export default function DiscoverPage() {
 
         <aside className="space-y-5">
           <div className="card p-5">
-            <p className="section-label">What happens here</p>
-            <div className="space-y-4">
+            <p className="label">What happens here</p>
+            <div className="mt-4 space-y-4">
               {[
                 "Contacts are normalized client-side before any network step.",
                 "Hashed identifiers move through the confidential matching flow.",
@@ -190,28 +180,24 @@ export default function DiscoverPage() {
                 "Non-matching contacts are never shown to the platform.",
               ].map((item, i) => (
                 <div key={item} className="flex gap-3">
-                  <span className="mt-0.5 text-xs font-mono text-arc">
-                    0{i + 1}
-                  </span>
+                  <span className="mt-0.5 text-xs font-mono text-arc">0{i + 1}</span>
                   <p className="text-sm leading-7 text-dim">{item}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="card-plain p-5">
-            <p className="section-label">Demo registry</p>
-            <div className="space-y-2">
-              {["bob@example.com", "carol@example.com", "dave@example.com"].map(
-                (email) => (
-                  <div
-                    key={email}
-                    className="rounded-xl border border-border bg-surface px-3 py-2.5 text-xs font-mono text-arc"
-                  >
-                    {email}
-                  </div>
-                )
-              )}
+          <div className="card-muted p-5">
+            <p className="label">Demo registry</p>
+            <div className="mt-4 space-y-2">
+              {["bob@example.com", "carol@example.com", "dave@example.com"].map((email) => (
+                <div
+                  key={email}
+                  className="rounded-xl border border-border bg-surface px-3 py-2.5 text-xs font-mono text-arc"
+                >
+                  {email}
+                </div>
+              ))}
             </div>
           </div>
 

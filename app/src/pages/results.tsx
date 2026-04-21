@@ -5,111 +5,233 @@ import PrivacyExplainer from "@/components/PrivacyExplainer";
 import { loadResult } from "@/hooks/useDiscovery";
 import { DiscoveryResult, ROUTES } from "@/lib/constants";
 
-export default function ResultsPage() {
-  const [result, setResult] = useState<DiscoveryResult | null>(null);
-  const [ready,  setReady]  = useState(false);
-
-  useEffect(() => { setResult(loadResult()); setReady(true); }, []);
-
-  if (!ready) return <div className="page flex items-center justify-center min-h-[60vh]"><p className="text-dim font-mono text-sm animate-pulse-slow">Loading…</p></div>;
-
-  if (!result) return (
-    <div className="page max-w-lg mx-auto text-center flex flex-col items-center justify-center min-h-[60vh] space-y-6">
-      <div className="w-16 h-16 rounded-2xl bg-panel border border-border flex items-center justify-center text-2xl">◇</div>
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-bright">No results yet</h1>
-        <p className="text-dim text-sm">Run a contact discovery first.</p>
-      </div>
-      <Link href={ROUTES.DISCOVER} className="btn-primary">Go to Discovery →</Link>
-    </div>
-  );
-
-  const { matched, total, hiddenCount } = result;
-  const rate = total > 0 ? Math.round((matched.length / total) * 100) : 0;
-
-  if (matched.length === 0) return (
-    <div className="page max-w-lg mx-auto space-y-8 stagger">
-      <div><p className="label mb-1">Discovery complete</p><h1 className="text-3xl font-extrabold text-bright">No contacts found.</h1></div>
-      <div className="grid grid-cols-3 gap-3">
-        <Stat value={total} label="checked" />
-        <Stat value={0} label="matched" accent="arc" />
-        <Stat value={hiddenCount} label="protected" accent="dim" />
-      </div>
-      <div className="card space-y-2">
-        <p className="text-sm font-semibold text-bright flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-arc" />Privacy preserved</p>
-        <p className="text-sm text-dim leading-relaxed">None of your {total} contact{total !== 1 ? "s" : ""} are currently registered. The platform never learned who you searched for.</p>
-      </div>
-      <div className="flex gap-3">
-        <Link href={ROUTES.DISCOVER} className="btn-primary flex-1 text-center">Try again</Link>
-        <Link href={ROUTES.HOME} className="btn-ghost flex-1 text-center">Home</Link>
-      </div>
-    </div>
-  );
-
+function Stat({
+  value,
+  label,
+  tone = "default",
+}: {
+  value: string | number;
+  label: string;
+  tone?: "default" | "arc" | "signal";
+}) {
   return (
-    <div className="page">
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
-        <div className="space-y-7">
-          <div className="stagger space-y-2">
-            <p className="label">Discovery complete</p>
-            <h1 className="text-3xl font-extrabold text-bright">
-              {matched.length === 1 ? "1 contact found." : `${matched.length} contacts found.`}
-            </h1>
-            <p className="text-dim text-sm max-w-md">These contacts are registered on PrivateConnect. Non-matching contacts were never revealed to us.</p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3 animate-fade-up">
-            <Stat value={total} label="checked" />
-            <Stat value={matched.length} label="matched" accent="arc" />
-            <Stat value={hiddenCount} label="protected" accent="dim" />
-          </div>
-
-          <div className="space-y-3">
-            {matched.map((p, i) => <MatchCard key={p.id} profile={p} index={i} />)}
-          </div>
-
-          <div className="flex gap-3 p-4 rounded-xl border border-arc/20 bg-arc/5 animate-fade-up">
-            <span className="text-arc shrink-0 mt-0.5">◆</span>
-            <p className="text-xs text-dim leading-relaxed">
-              <span className="text-arc font-semibold">Privacy guarantee: </span>
-              {hiddenCount > 0
-                ? `${hiddenCount} contact${hiddenCount !== 1 ? "s" : ""} did not match. Their identities were never exposed — the platform received only an encrypted bitmask.`
-                : "The platform received only an encrypted bitmask — not your contact list."}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3 animate-fade-up">
-            <Link href={ROUTES.DISCOVER} className="btn-primary">Run another discovery</Link>
-            <Link href={ROUTES.HOME} className="btn-ghost">Back home</Link>
-          </div>
-        </div>
-
-        <aside className="space-y-5">
-          <div className="card space-y-4">
-            <p className="label">Match rate</p>
-            <div className="space-y-2">
-              <div className="flex items-end justify-between">
-                <span className="text-4xl font-extrabold text-bright">{rate}%</span>
-                <span className="text-xs text-dim font-mono mb-1">{matched.length}/{total}</span>
-              </div>
-              <div className="h-1.5 rounded-full bg-surface overflow-hidden">
-                <div className="h-full bg-arc rounded-full transition-all duration-700" style={{ width: `${rate}%` }} />
-              </div>
-              <p className="text-xs text-muted">{hiddenCount} contact{hiddenCount !== 1 ? "s" : ""} not on platform — identities remain private.</p>
-            </div>
-          </div>
-          <PrivacyExplainer compact />
-        </aside>
-      </div>
+    <div className="stat">
+      <p
+        className={`stat-value ${
+          tone === "arc" ? "text-arc" : tone === "signal" ? "text-signal" : ""
+        }`}
+      >
+        {value}
+      </p>
+      <p className="stat-label">{label}</p>
     </div>
   );
 }
 
-function Stat({ value, label, accent }: { value: number; label: string; accent?: "arc"|"dim" }) {
+export default function ResultsPage() {
+  const [result, setResult] = useState<DiscoveryResult | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setResult(loadResult());
+    setReady(true);
+  }, []);
+
+  if (!ready) {
+    return (
+      <div className="page flex min-h-[60vh] items-center justify-center">
+        <div className="card-muted w-full max-w-md p-8 text-center">
+          <p className="label">Loading</p>
+          <p className="mt-3 text-lg font-medium text-bright">
+            Preparing results view…
+          </p>
+          <p className="mt-2 text-sm text-dim">
+            Restoring the current session result.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!result) {
+    return (
+      <div className="page flex min-h-[60vh] items-center justify-center">
+        <div className="card w-full max-w-xl p-8 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-surface text-xl text-dim">
+            ◇
+          </div>
+
+          <p className="label mt-6">No result available</p>
+          <h1 className="mt-2 text-2xl font-semibold text-bright">
+            No discovery result found.
+          </h1>
+          <p className="mt-3 text-sm leading-7 text-dim">
+            Run a private discovery request first to generate a result view.
+          </p>
+
+          <div className="mt-6 flex justify-center">
+            <Link href={ROUTES.DISCOVER} className="btn-primary">
+              Go to discovery
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { matched, total, hiddenCount } = result;
+  const matchRate = total > 0 ? Math.round((matched.length / total) * 100) : 0;
+
   return (
-    <div className="card text-center p-4 space-y-1">
-      <p className={accent === "arc" ? "text-2xl font-extrabold text-arc" : accent === "dim" ? "text-2xl font-extrabold text-dim" : "text-2xl font-extrabold text-bright"}>{value}</p>
-      <p className="text-xs text-muted font-mono">{label}</p>
+    <div className="page">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-8">
+          <div className="stagger space-y-3">
+            <span className="eyebrow">
+              <span className="h-1.5 w-1.5 rounded-full bg-arc animate-pulse-slow" />
+              Result view
+            </span>
+
+            <div className="space-y-3">
+              <h1 className="section-title">
+                {matched.length === 0
+                  ? "No secure matches found."
+                  : matched.length === 1
+                  ? "1 secure match found."
+                  : `${matched.length} secure matches found.`}
+              </h1>
+
+              <p className="section-copy">
+                This view contains only confirmed overlaps from the submitted batch.
+                Contacts that did not match remain outside the result set.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Stat value={total} label="contacts checked" />
+            <Stat value={matched.length} label="confirmed matches" tone="arc" />
+            <Stat value={hiddenCount} label="protected non-matches" tone="signal" />
+          </div>
+
+          <div className="card-accent p-6 sm:p-7">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div className="space-y-1">
+                <p className="label">Result summary</p>
+                <h2 className="text-2xl font-semibold tracking-tight text-bright">
+                  Overlap rate: {matchRate}%
+                </h2>
+                <p className="text-sm leading-7 text-dim">
+                  {matched.length} of {total} submitted contacts resolved to
+                  registered profiles.
+                </p>
+              </div>
+
+              <div className="w-full max-w-xs">
+                <div className="mb-2 flex items-center justify-between text-xs font-mono uppercase tracking-[0.14em] text-dim">
+                  <span>overlap</span>
+                  <span>{matched.length}/{total}</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-surface">
+                  <div
+                    className="h-full rounded-full bg-arc transition-all duration-700"
+                    style={{ width: `${matchRate}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {matched.length === 0 ? (
+            <div className="card p-7">
+              <p className="text-lg font-semibold text-bright">
+                This batch did not resolve to any registered profiles.
+              </p>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-dim">
+                The request still completed successfully. It simply means no
+                verified overlaps were found for this set of contacts.
+              </p>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href={ROUTES.DISCOVER} className="btn-primary">
+                  Run another request
+                </Link>
+                <Link href={ROUTES.HOME} className="btn-secondary">
+                  Back home
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="label">Matched profiles</p>
+                  <h2 className="mt-1 text-xl font-semibold text-bright">
+                    Confirmed overlap set
+                  </h2>
+                </div>
+                <span className="badge-accent">{matched.length} revealed</span>
+              </div>
+
+              <div className="space-y-3">
+                {matched.map((profile, index) => (
+                  <MatchCard key={profile.id} profile={profile} index={index} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="card p-6">
+            <div className="flex items-start gap-3">
+              <span className="mt-1 text-arc">◆</span>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-bright">
+                  Visibility guarantee
+                </p>
+                <p className="text-sm leading-7 text-dim">
+                  Only the overlap set is surfaced here. The {hiddenCount} non-matching
+                  contact{hiddenCount !== 1 ? "s remain" : " remains"} outside the
+                  visible product result.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Link href={ROUTES.DISCOVER} className="btn-primary">
+              Run another request
+            </Link>
+            <Link href={ROUTES.HOME} className="btn-secondary">
+              Back home
+            </Link>
+          </div>
+        </div>
+
+        <aside className="space-y-5">
+          <div className="card-muted p-5">
+            <p className="label">Result integrity</p>
+            <div className="mt-4 space-y-4">
+              <div>
+                <p className="text-sm font-medium text-bright">Output scope</p>
+                <p className="mt-1 text-sm leading-7 text-dim">
+                  The result view is intentionally narrow: overlap count,
+                  protected non-match count, and matched profiles only.
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-bright">Session visibility</p>
+                <p className="mt-1 text-sm leading-7 text-dim">
+                  This output is shown back to the requesting session only. It is
+                  not a broad contact-upload reveal surface.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <PrivacyExplainer compact />
+        </aside>
+      </div>
     </div>
   );
 }
