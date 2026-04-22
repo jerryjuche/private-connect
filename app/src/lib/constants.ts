@@ -1,5 +1,5 @@
 export const APP_NAME = "PrivateConnect";
-export const MAX_CONTACTS = 10;
+export const MAX_CONTACTS = 150;
 
 export const ROUTES = {
   HOME: "/",
